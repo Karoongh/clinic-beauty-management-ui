@@ -1,12 +1,20 @@
 # Prototype sources
 
-| File | Description |
-|------|-------------|
-| `clinic-mobile-single.html` | **Open this** — full demo, no server |
-| `index.html` | Markup |
-| `styles.css` | Styles |
-| `app.js` | Logic + demo data |
+## Quick path (recommended)
 
-See [docs/BUILD.md](../docs/BUILD.md) to rebuild the single-file bundle after editing split sources.
+```bash
+python3 scripts/decode-prototype.py
+```
 
-Sources are published in follow-up commits on `main`.
+Then open **`prototype/clinic-mobile-single.html`** in a mobile browser.
+
+Encoded sources live under `prototype/encoded/*.gz.b64` (gzip + base64) so the full UI is recoverable offline without browsing megabytes of raw HTML in git history noise.
+
+## After decode
+
+| File | Role |
+|------|------|
+| `clinic-mobile-single.html` | Full demo, no server |
+| `index.html` + `styles.css` + `app.js` | Editable split sources |
+
+See [docs/BUILD.md](../docs/BUILD.md).
