@@ -1,37 +1,57 @@
 # Clinic Beauty Management — Backend
 
-Go modular monolith. Demo data. **No production money/stock mutation.**
+Go modular monolith. **Auth + Patients use PostgreSQL.**  
+No production money/stock mutation.
 
 ## Quick start
+
 ```bash
 cd backend
 docker compose -f deploy/compose/docker-compose.yml up --build
 ```
 
-## Ready modules (all under `/api/v1`)
+On first start, Postgres runs migrations from `migrations/` automatically.
 
-| Module | Key endpoints |
-|--------|----------------|
-| Auth | `POST /auth/login` · `GET /auth/me` |
-| Patients | `GET /patients` · `GET /patients/:id` · `GET /patients/:id/wallet` |
-| Admissions | `GET /admissions` · `GET /admissions/today` · `POST /admissions` |
-| Appointments | `GET /appointments/requests` · `POST /appointments/requests/:id/decide` |
-| Catalog | `GET /catalog/items` · `GET /catalog/items/:id` |
-| Analytics | `GET /analytics/home` |
+If you change migrations after the volume already exists:
 
-Demo logins: `manager/manager123` · `reception/reception123` · `doctor/doctor123` · `cashier/cashier123`
+```bash
+docker compose -f deploy/compose/docker-compose.yml down -v
+docker compose -f deploy/compose/docker-compose.yml up --build
+```
 
-## Accounting gate (still open)
+## Demo logins (seeded)
 
-Finance and inventory **must not** be implemented until every item in `docs/ACCOUNTING-PATH.md` is marked Done and reviewed.
+All seeded users currently share password: **`password`**
 
-Hard rules remain:
-- Opening stock ≠ purchase
-- Deposit → wallet credit (liability), not revenue
-- Soft-void + audit who/when
-- Weighted Average valuation
+| Username | Role |
+|----------|------|
+| manager | manager |
+| reception | reception |
+| doctor | doctor |
+| cashier | cashier |
+
+```bash
+curl -X POST http://localhost:8080/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"manager","password":"password"}'
+```
+
+## Modules
+
+| Module | Storage | Notes |
+|--------|---------|-------|
+| Auth | PostgreSQL | bcrypt |
+| Patients | PostgreSQL | list / profile / wallet read |
+| Admissions | in-memory demo | next to migrate |
+| Appointments | in-memory demo | next to migrate |
+| Catalog | in-memory demo | next to migrate |
+| Analytics | static demo | next to real queries |
+
+## Accounting gate
+
+Finance and inventory **must not** be implemented until `docs/ACCOUNTING-PATH.md` checklist is fully Done.
 
 ## Safety
 
-Work lives on branch `feat/backend-skeleton-go`.  
-Safety snapshot: `safety/20261008-backend-skeleton`
+- Branch: `feat/db-users-patients`
+- Safety: `safety/20261008-db-users-patients`
