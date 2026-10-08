@@ -7,23 +7,23 @@ import (
 )
 
 // Module holds patients dependencies.
-type Module struct{}
-
-// New creates the patients module.
-func New() *Module {
-	return &Module{}
+type Module struct {
+	repo *Repository
 }
 
-// Register mounts patients routes (all protected by JWT).
+// New creates the patients module with a repository.
+func New(repo *Repository) *Module {
+	return &Module{repo: repo}
+}
+
+// Register mounts patients routes (protected by JWT).
 func (m *Module) Register(r fiber.Router) {
-	// Smoke test (public)
 	r.Get("/patients/ping", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{"module": "patients", "status": "ok"})
 	})
 
-	// Protected routes
 	protected := r.Group("/patients", auth.Middleware())
-	protected.Get("/", m.list)           // GET /api/v1/patients?q=
-	protected.Get("/:id", m.get)         // GET /api/v1/patients/:id
-	protected.Get("/:id/wallet", m.wallet) // GET /api/v1/patients/:id/wallet
+	protected.Get("/", m.list)
+	protected.Get("/:id", m.get)
+	protected.Get("/:id/wallet", m.wallet)
 }

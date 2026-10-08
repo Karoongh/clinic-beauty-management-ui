@@ -2,24 +2,8 @@ package auth
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"golang.org/x/crypto/bcrypt"
 )
-
-// demoUser is temporary until the users table and repository are ready.
-type demoUser struct {
-	ID          string
-	Username    string
-	Password    string // plain only for local demo – never in production
-	Role        string
-	DisplayName string
-}
-
-// Local demo accounts. Replace with database + bcrypt as soon as users table exists.
-var demoUsers = []demoUser{
-	{ID: "u-manager", Username: "manager", Password: "manager123", Role: "manager", DisplayName: "مدیر"},
-	{ID: "u-reception", Username: "reception", Password: "reception123", Role: "reception", DisplayName: "پذیرش"},
-	{ID: "u-doctor", Username: "doctor", Password: "doctor123", Role: "doctor", DisplayName: "پزشک"},
-	{ID: "u-cashier", Username: "cashier", Password: "cashier123", Role: "cashier", DisplayName: "صندوقدار"},
-}
 
 type loginRequest struct {
 	Username string `json:"username"`
@@ -34,6 +18,10 @@ type loginResponse struct {
 }
 
 func (m *Module) login(c *fiber.Ctx) error {
+	if m.repo == nil {
+		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{"error": "auth repository not configured"})
+	}
+
 	var req loginRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid body"})
@@ -42,18 +30,16 @@ func (m *Module) login(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "username and password required"})
 	}
 
-	var found *demoUser
-	for i := range demoUsers {
-		if demoUsers[i].Username == req.Username {
-			found = &demoUsers[i]
-			break
-		}
-	}
-	if found == nil || found.Password != req.Password {
+	user, err := m.repo.FindByUsername(c.Context(), req.Username)
+	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid credentials"})
 	}
 
-	token, err := IssueAccessToken(found.ID, found.Role)
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid credentials"})
+	}
+
+	token, err := IssueAccessToken(user.ID, user.Role)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "could not issue token"})
 	}
@@ -61,8 +47,8 @@ func (m *Module) login(c *fiber.Ctx) error {
 	return c.JSON(loginResponse{
 		AccessToken: token,
 		TokenType:   "Bearer",
-		Role:        found.Role,
-		DisplayName: found.DisplayName,
+		Role:        user.Role,
+		DisplayName: user.DisplayName,
 	})
 }
 
