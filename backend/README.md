@@ -1,47 +1,29 @@
 # Clinic Beauty Management — Backend
 
-Go modular monolith for the clinic/beauty product.
-
-**Status:** Auth + Patients + Admissions + Appointments ready (demo data).  
-No production money/stock mutation yet.
+Go modular monolith. Demo data. No production money mutation yet.
 
 ## Quick start
-
 ```bash
-cd backend
-docker compose -f deploy/compose/docker-compose.yml up --build
+cd backend && docker compose -f deploy/compose/docker-compose.yml up --build
 ```
 
-## Auth
-`POST /api/v1/auth/login` · `GET /api/v1/auth/me`  
-Demo: manager/manager123 · reception/reception123 · doctor/doctor123 · cashier/cashier123
+## Modules ready
 
-## Patients
-`GET /api/v1/patients?q=` · `GET /api/v1/patients/:id` · `GET /api/v1/patients/:id/wallet`
+| Module | Endpoints |
+|--------|-----------|
+| **Auth** | `POST /auth/login` · `GET /auth/me` |
+| **Patients** | `GET /patients?q=` · `GET /patients/:id` · `GET /patients/:id/wallet` |
+| **Admissions** | `GET /admissions` · `GET /admissions/today` · `POST /admissions` |
+| **Appointments** | `GET /appointments/requests` · `POST /appointments/requests/:id/decide` |
+| **Catalog** | `GET /catalog/items?kind=&q=` · `GET /catalog/items/:id` |
 
-## Admissions
-`GET /api/v1/admissions` · `GET /api/v1/admissions/today` · `POST /api/v1/admissions` · `GET /api/v1/admissions/:id`
+All under `/api/v1` and protected by Bearer token (except login & pings).
 
-## Appointments / Requests
+Demo logins: `manager/manager123`, `reception/reception123`, `doctor/doctor123`, `cashier/cashier123`
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/api/v1/appointments/requests` | List with filters `?channel=&status=&type=` |
-| GET | `/api/v1/appointments/requests/:id` | Single request |
-| POST | `/api/v1/appointments/requests/:id/decide` | Accept or reject |
+### Catalog filters
+- `kind=service` or `kind=goods`
+- `q=` search by name or code
 
-### Filters
-- channel: `telegram` · `phone` · `instagram` · `whatsapp`
-- status: `pending` · `accepted` · `rejected`
-- type: `reserve` · `deposit`
-
-### Decide body
-```json
-{ "action": "accept" }
-```
-or `{ "action": "reject", "notes": "..." }`
-
-Note: accepting a deposit currently only changes status. Wallet credit will be added under the accounting gate.
-
-## Accounting rules
-See `docs/ACCOUNTING-PATH.md`. No finance code until checklist is complete.
+## Accounting
+See `docs/ACCOUNTING-PATH.md`. Finance & inventory code blocked until checklist is complete.
