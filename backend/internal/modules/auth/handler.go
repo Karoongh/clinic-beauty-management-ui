@@ -2,36 +2,23 @@ package auth
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"golang.org/x/crypto/bcrypt"
 )
 
 // demoUser is temporary until the users table and repository are ready.
 type demoUser struct {
-	ID           string
-	Username     string
-	PasswordHash string
-	Role         string
-	DisplayName  string
+	ID          string
+	Username    string
+	Password    string // plain only for local demo – never in production
+	Role        string
+	DisplayName string
 }
 
-// Pre-hashed passwords for local testing only.
-// manager / manager123
-// reception / reception123
+// Local demo accounts. Replace with database + bcrypt as soon as users table exists.
 var demoUsers = []demoUser{
-	{
-		ID:           "u-manager",
-		Username:     "manager",
-		PasswordHash: "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy", // manager123
-		Role:         "manager",
-		DisplayName:  "مدیر",
-	},
-	{
-		ID:           "u-reception",
-		Username:     "reception",
-		PasswordHash: "$2a$10$8K1p/a0dL1LXMIgoEDFrwOfMQs1qJ9qJ9qJ9qJ9qJ9qJ9qJ9qJ9q", // placeholder – will fix
-		Role:         "reception",
-		DisplayName:  "پذیرش",
-	},
+	{ID: "u-manager", Username: "manager", Password: "manager123", Role: "manager", DisplayName: "مدیر"},
+	{ID: "u-reception", Username: "reception", Password: "reception123", Role: "reception", DisplayName: "پذیرش"},
+	{ID: "u-doctor", Username: "doctor", Password: "doctor123", Role: "doctor", DisplayName: "پزشک"},
+	{ID: "u-cashier", Username: "cashier", Password: "cashier123", Role: "cashier", DisplayName: "صندوقدار"},
 }
 
 type loginRequest struct {
@@ -62,16 +49,8 @@ func (m *Module) login(c *fiber.Ctx) error {
 			break
 		}
 	}
-	if found == nil {
+	if found == nil || found.Password != req.Password {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid credentials"})
-	}
-
-	// Temporary: accept plain password match for demo until proper hashes are seeded
-	if err := bcrypt.CompareHashAndPassword([]byte(found.PasswordHash), []byte(req.Password)); err != nil {
-		// fallback for development only
-		if req.Password != found.Username+"123" {
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid credentials"})
-		}
 	}
 
 	token, err := IssueAccessToken(found.ID, found.Role)
