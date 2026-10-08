@@ -9,6 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/recover"
 
 	"github.com/Karoongh/clinic-beauty-management-ui/backend/internal/modules/admissions"
+	"github.com/Karoongh/clinic-beauty-management-ui/backend/internal/modules/appointments"
 	"github.com/Karoongh/clinic-beauty-management-ui/backend/internal/modules/auth"
 	"github.com/Karoongh/clinic-beauty-management-ui/backend/internal/modules/patients"
 )
@@ -35,6 +36,7 @@ func main() {
 	auth.New().Register(v1)
 	patients.New().Register(v1)
 	admissions.New().Register(v1)
+	appointments.New().Register(v1)
 
 	// TODO: catalog, inventory, finance, analytics, settings
 	// Finance module must wait for accounting-audit checklist completion
