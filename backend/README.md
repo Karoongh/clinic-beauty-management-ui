@@ -2,7 +2,7 @@
 
 Go modular monolith for the clinic/beauty product.
 
-**Status:** Auth + Patients modules ready (demo data).  
+**Status:** Auth + Patients + Admissions ready (demo data).  
 No production money/stock mutation yet.
 
 ## Requirements
@@ -25,16 +25,8 @@ API listens on `http://localhost:8080`.
 |--------|------|------|-------------|
 | POST | `/api/v1/auth/login` | No | Login → JWT |
 | GET | `/api/v1/auth/me` | Bearer | Current user |
-| GET | `/api/v1/auth/ping` | No | Smoke test |
 
-### Demo accounts
-
-| Username | Password | Role |
-|----------|----------|------|
-| manager | manager123 | manager |
-| reception | reception123 | reception |
-| doctor | doctor123 | doctor |
-| cashier | cashier123 | cashier |
+Demo accounts: `manager/manager123`, `reception/reception123`, `doctor/doctor123`, `cashier/cashier123`
 
 ## Patients
 
@@ -43,24 +35,30 @@ API listens on `http://localhost:8080`.
 | GET | `/api/v1/patients?q=` | Bearer | List / search |
 | GET | `/api/v1/patients/:id` | Bearer | Profile |
 | GET | `/api/v1/patients/:id/wallet` | Bearer | Wallet balance (read-only) |
-| GET | `/api/v1/patients/ping` | No | Smoke test |
 
-Example:
+## Admissions
 
-```bash
-TOKEN=$(curl -s -X POST http://localhost:8080/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"manager","password":"manager123"}' | jq -r .access_token)
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/api/v1/admissions` | Bearer | All admissions |
+| GET | `/api/v1/admissions/today` | Bearer | Today’s admissions |
+| POST | `/api/v1/admissions` | Bearer | Create new admission |
+| GET | `/api/v1/admissions/:id` | Bearer | Single admission |
 
-curl http://localhost:8080/api/v1/patients \
-  -H "Authorization: Bearer $TOKEN"
+### Create body example
 
-curl "http://localhost:8080/api/v1/patients?q=سارا" \
-  -H "Authorization: Bearer $TOKEN"
-
-curl http://localhost:8080/api/v1/patients/p1/wallet \
-  -H "Authorization: Bearer $TOKEN"
+```json
+{
+  "patient_id": "p1",
+  "channel": "telegram",
+  "service": "بوتاکس",
+  "doctor": "دکتر احمدی",
+  "notes": ""
+}
 ```
+
+Valid channels: `walk-in`, `phone`, `telegram`, `instagram`, `whatsapp`  
+Admission numbers start from 1 (clinic policy).
 
 ## Architecture principles
 
@@ -80,5 +78,5 @@ See `docs/ACCOUNTING-PATH.md`.
 
 ## Next steps
 
-1. Admissions module
+1. Appointments / Requests module
 2. After accounting checklist Done → finance & inventory
