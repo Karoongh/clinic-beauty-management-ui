@@ -7,6 +7,10 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+
+	"github.com/Karoongh/clinic-beauty-management-ui/backend/internal/modules/admissions"
+	"github.com/Karoongh/clinic-beauty-management-ui/backend/internal/modules/auth"
+	"github.com/Karoongh/clinic-beauty-management-ui/backend/internal/modules/patients"
 )
 
 func main() {
@@ -24,7 +28,16 @@ func main() {
 		})
 	})
 
-	// TODO: register module routes after platform (db/redis/auth) is wired
+	// API v1 group
+	v1 := app.Group("/api/v1")
+
+	// Register feature modules (each module is isolated)
+	auth.New().Register(v1)
+	patients.New().Register(v1)
+	admissions.New().Register(v1)
+
+	// TODO: catalog, inventory, finance, analytics, settings
+	// Finance module must wait for accounting-audit checklist completion
 
 	addr := ":8080"
 	if v := os.Getenv("PORT"); v != "" {
