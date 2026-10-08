@@ -2,8 +2,8 @@
 
 Go modular monolith for the clinic/beauty product.
 
-**Status:** Skeleton + non-money module stubs.  
-No production money/stock logic yet. Accounting path is documented in `docs/ACCOUNTING-PATH.md`.
+**Status:** Auth module working with demo users.  
+No production money/stock logic yet. Accounting path is in `docs/ACCOUNTING-PATH.md`.
 
 ## Requirements
 
@@ -19,54 +19,56 @@ docker compose -f deploy/compose/docker-compose.yml up --build
 
 API listens on `http://localhost:8080`.
 
-| Endpoint | Purpose |
-|----------|---------|
-| `GET /health` | Health check |
-| `GET /api/v1/auth/ping` | Auth module alive |
-| `GET /api/v1/patients/ping` | Patients module alive |
-| `GET /api/v1/admissions/ping` | Admissions module alive |
+## Auth (ready for testing)
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/api/v1/auth/login` | No | Login, returns JWT |
+| GET | `/api/v1/auth/me` | Bearer | Current user info |
+| GET | `/api/v1/auth/ping` | No | Smoke test |
+
+### Demo accounts (local only)
+
+| Username | Password | Role |
+|----------|----------|------|
+| manager | manager123 | manager |
+| reception | reception123 | reception |
+| doctor | doctor123 | doctor |
+| cashier | cashier123 | cashier |
+
+Example:
+
+```bash
+curl -X POST http://localhost:8080/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"manager","password":"manager123"}'
+```
+
+Then use the token:
+
+```bash
+curl http://localhost:8080/api/v1/auth/me \
+  -H "Authorization: Bearer <access_token>"
+```
 
 ## Architecture principles
 
 - **Modular Monolith** — each feature lives in `internal/modules/<name>`
-- Modules communicate only through interfaces (no direct imports between modules)
+- Modules communicate only through interfaces
 - Adding a new UI card + API endpoint = change only inside one module
-- Stateless API + Redis + PostgreSQL connection pool for high concurrency
-- Single clinic only (no multi-tenant ERP)
+- Single clinic only
 
-## Accounting hard rules (do not violate)
+## Accounting hard rules
 
 1. Opening stock ≠ purchase
-2. Confirmed deposit → patient wallet credit (liability), not service revenue
-3. All money/stock documents: unique sequence, soft-void, audit who/when
+2. Confirmed deposit → patient wallet credit (liability), not revenue
+3. Soft-void only + audit who/when
 4. Stock valuation: Weighted Average
 
-See `docs/ACCOUNTING-PATH.md` and root `docs/ACCOUNTING.md`.
-
-## Project layout
-
-```
-backend/
-├── cmd/api/                 # entrypoint
-├── internal/
-│   ├── config/
-│   ├── platform/            # db, redis
-│   ├── modules/             # feature modules (isolated)
-│   │   ├── auth/
-│   │   ├── patients/
-│   │   ├── admissions/
-│   │   └── finance/         # structure only – gated
-│   └── shared/
-├── migrations/
-├── deploy/
-│   ├── docker/
-│   └── compose/
-└── docs/
-```
+See `docs/ACCOUNTING-PATH.md`.
 
 ## Next steps
 
-1. Implement real auth (login, JWT, roles)
-2. Implement patients CRUD + wallet read model
-3. Implement admissions
-4. Only after accounting checklist is fully Done → finance & inventory code
+1. Patients CRUD + wallet read model
+2. Admissions
+3. After accounting checklist Done → finance & inventory
