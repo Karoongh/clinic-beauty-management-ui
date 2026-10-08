@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"log"
-	"os"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -62,6 +61,4 @@ func main() {
 	if err := app.Listen(addr); err != nil {
 		log.Fatal(err)
 	}
-
-	_ = os.Getenv // keep os import used if PORT only via config
 }
